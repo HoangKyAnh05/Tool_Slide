@@ -1,0 +1,47 @@
+{
+  "name": "quizlet-vocab-image-finder",
+  "version": "1.0.0",
+  "description": "Scrape vocabularies from Quizlet, auto search images, and write image prompts using Gemini.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.1.1",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.vocabai.finder",
+    "productName": "VocabAI Scraper",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        "portable"
+      ]
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "services/**/*",
+      "renderer/**/*",
+      "package.json"
+    ]
+  },
+  "keywords": [
+    "quizlet",
+    "scraper",
+    "electron",
+    "gemini",
+    "image-search"
+  ],
+  "author": "Antigravity",
+  "license": "ISC"
+}

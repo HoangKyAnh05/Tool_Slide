@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VocabAI - Học Từ Vựng Thông Minh</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <span class="logo-text">VocabAI</span>
+      </div>
+
+      <nav class="nav-links">
+        <button class="nav-btn active" data-tab="import">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Nhập từ vựng
+        </button>
+        <button class="nav-btn" data-tab="vocab">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="9" y1="9" x2="21" y2="9"/><line x1="9" y1="15" x2="21" y2="15"/></svg>
+          Sổ từ vựng <span class="badge" id="vocab-count">0</span>
+        </button>
+        <button class="nav-btn" data-tab="settings">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Cấu Hình
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p class="status-indicator online">Sẵn sàng hoạt động</p>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="content">
+      
+      <!-- TAB 1: BULK IMPORT AND SEARCH -->
+      <section id="tab-import" class="tab-pane active">
+        <div class="header-section">
+          <h1>Nhập từ vựng & Tìm ảnh</h1>
+          <p class="subtitle">Nhập danh sách từ vựng thủ công để tự động tìm kiếm hình ảnh thực tế trên mạng (Bing/Unsplash).</p>
+        </div>
+
+        <div class="card glass-card import-box">
+          <div class="input-group">
+            <label for="bulk-text">Danh sách từ vựng & Định nghĩa</label>
+            <textarea id="bulk-text" rows="10" placeholder="Nhập định dạng: Từ vựng - Định nghĩa (hoặc Từ vựng : Định nghĩa)
+Mỗi cặp từ một dòng.
+Ví dụ:
+멋쟁이 - người sành điệu
+상표 - thương hiệu
+사과 - quả táo"></textarea>
+          </div>
+          
+          <div class="bulk-options-row">
+            <div class="option-check">
+              <input type="checkbox" id="opt-bulk-download" checked>
+              <label for="opt-bulk-download">Tải hình ảnh về máy để lưu ngoại tuyến</label>
+            </div>
+            <div class="option-check">
+              <input type="checkbox" id="opt-bulk-prompt" checked>
+              <label for="opt-bulk-prompt">Viết prompt tạo ảnh tự động (Gemini AI)</label>
+            </div>
+          </div>
+          
+          <div style="margin-top: 20px;">
+            <button id="btn-import-bulk" class="btn btn-primary btn-glow" style="width: 100%;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              Bắt đầu tìm ảnh & Ghép từ vựng
+            </button>
+          </div>
+        </div>
+
+        <!-- Manual Add form (Keep for quick single additions) -->
+        <div class="card glass-card">
+          <h3 class="section-title">Thêm từ đơn lẻ</h3>
+          <div class="manual-grid">
+            <div class="input-item">
+              <label for="manual-word">Từ vựng</label>
+              <input type="text" id="manual-word" placeholder="Ví dụ: Apple" />
+            </div>
+            <div class="input-item">
+              <label for="manual-def">Định nghĩa tiếng Việt</label>
+              <input type="text" id="manual-def" placeholder="Ví dụ: Quả táo" />
+            </div>
+            <div class="input-item">
+              <label for="manual-topic">Thư mục/Chủ đề</label>
+              <input type="text" id="manual-topic" placeholder="Chủ đề mặc định" />
+            </div>
+            <div class="btn-align">
+              <button id="btn-add-manual" class="btn btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Thêm từ
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress bar UI -->
+        <div id="progress-container" class="card glass-card progress-card hidden">
+          <div class="progress-header">
+            <h4 id="progress-title">Đang xử lý...</h4>
+            <span id="progress-percent">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%"></div>
+          </div>
+          <p id="progress-detail" class="progress-detail">Đang chuẩn bị khởi tạo...</p>
+        </div>
+      </section>
+
+      <!-- TAB 2: MY VOCABULARY -->
+      <section id="tab-vocab" class="tab-pane">
+        <div class="vocab-layout-wrapper">
+          <!-- Folder Sub-Sidebar -->
+          <aside class="vocab-sidebar">
+            <h3 class="sidebar-title">Thư mục</h3>
+            <ul id="folder-list" class="folder-list">
+              <li class="folder-item active" data-folder-id="all">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                <span class="folder-name">Tất cả từ vựng</span>
+                <span class="folder-badge" id="badge-all">0</span>
+              </li>
+              <li class="folder-item" data-folder-id="uncategorized">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                <span class="folder-name">Chưa phân loại</span>
+                <span class="folder-badge" id="badge-uncategorized">0</span>
+              </li>
+              <!-- Custom folders inserted here dynamically -->
+            </ul>
+            <button id="btn-create-folder" class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 15px; font-size: 13px; padding: 10px;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Tạo thư mục mới
+            </button>
+          </aside>
+
+          <!-- Main Vocabulary Content -->
+          <div class="vocab-main">
+            <div class="header-section flex-header">
+              <div>
+                <h1>Sổ từ vựng của tôi</h1>
+                <p class="subtitle">Xem, tìm kiếm, phân loại thư mục và ôn tập trình chiếu thông minh.</p>
+              </div>
+              <div class="actions-group">
+                <button id="btn-slideshow" class="btn btn-primary btn-glow">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/><polygon points="10 8 15 10 10 12 10 8"/></svg>
+                  Trình chiếu Slide
+                </button>
+                <button id="btn-cloud-sync" class="btn btn-secondary">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.2 15c.7-1.2 1-2.5.7-3.9-.6-3-3.1-5.2-6.1-5.4C14.3 3 10.2 4.4 8.7 8.5c-.8-.3-1.6-.3-2.3 0C3.7 9.5 2 12.5 2 16c0 3.3 2.7 6 6 6h11c2.2 0 4-1.8 4-4 0-1.2-.6-2.3-1.8-3z"/><path d="M12 12v6M9 15l3-3 3 3"/></svg>
+                  Đồng bộ Google Drive
+                </button>
+                <button id="btn-clear-all" class="btn btn-danger">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                  Xóa hết
+                </button>
+              </div>
+            </div>
+
+            <!-- Bulk actions bar -->
+            <div id="bulk-actions-bar" class="bulk-actions-bar card glass-card hidden">
+              <div class="bulk-info">
+                <input type="checkbox" id="chk-select-all" class="bulk-checkbox">
+                <span id="bulk-selected-count">Đã chọn 0 mục</span>
+              </div>
+              <div class="bulk-buttons">
+                <div class="folder-move-wrapper">
+                  <button id="btn-bulk-move" class="btn btn-secondary btn-sm">
+                    Di chuyển vào thư mục ▾
+                  </button>
+                  <div id="bulk-move-dropdown" class="bulk-dropdown-menu hidden">
+                    <!-- Dynamic folders menu -->
+                  </div>
+                </div>
+                <button id="btn-bulk-delete" class="btn btn-danger btn-sm">
+                  Xóa các mục đã chọn
+                </button>
+              </div>
+            </div>
+
+            <div class="search-filter-bar card glass-card">
+              <div class="search-input-wrapper">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+                <input type="text" id="vocab-search" placeholder="Tìm kiếm từ vựng, định nghĩa hoặc prompt...">
+              </div>
+              <div class="filter-options">
+                <select id="vocab-filter-status">
+                  <option value="all">Tất cả trạng thái</option>
+                  <option value="has_image">Đã có ảnh</option>
+                  <option value="no_image">Chưa có ảnh</option>
+                  <option value="has_prompt">Đã viết prompt</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Grid of Vocabulary Cards -->
+            <div id="vocab-grid" class="vocab-grid">
+              <div class="no-data-msg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <p>Thư mục này chưa có từ vựng. Hãy nhập hàng loạt hoặc thêm từ thủ công để bắt đầu!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: SETTINGS -->
+      <section id="tab-settings" class="tab-pane">
+        <div class="header-section">
+          <h1>Cấu hình ứng dụng</h1>
+          <p class="subtitle">Quản lý API Key, thay đổi nguồn hình ảnh và liên kết lưu trữ đám mây Google Drive.</p>
+        </div>
+
+        <div class="card glass-card settings-form">
+          <div class="settings-group">
+            <h3>Google Gemini API</h3>
+            <p class="settings-desc">Sử dụng để tự động dịch nghĩa từ vựng và tự viết prompt chuẩn mô tả hình ảnh tiếng Anh chi tiết.</p>
+            <div class="input-item">
+              <label for="settings-gemini-key">Gemini API Key</label>
+              <div class="password-wrapper">
+                <input type="password" id="settings-gemini-key" placeholder="AIzaSy...">
+                <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('settings-gemini-key')">
+                  👁️
+                </button>
+              </div>
+              <span class="input-help">Lấy khóa API miễn phí tại: <a href="https://aistudio.google.com/" target="_blank" class="link">Google AI Studio</a>.</span>
+            </div>
+          </div>
+
+          <hr class="settings-divider">
+
+          <div class="settings-group">
+            <h3>Tìm Kiếm Hình Ảnh</h3>
+            <p class="settings-desc">Thiết lập tham số tìm kiếm hình ảnh mặc định khi ghép từ.</p>
+            <div class="input-item">
+              <label for="settings-image-source">Nguồn tìm kiếm ảnh</label>
+              <select id="settings-image-source">
+                <option value="bing">Bing CDN Images (Độ chính xác cao, 100% thành công)</option>
+                <option value="unsplash">Unsplash API (Chất lượng ảnh cao)</option>
+              </select>
+            </div>
+            
+            <div class="input-item">
+              <label for="settings-image-limit">Số lượng ảnh tối đa để lựa chọn</label>
+              <input type="number" id="settings-image-limit" min="4" max="15" value="8">
+              <span class="input-help">Số hình ảnh hiển thị trong bảng lựa chọn khi bạn ấn "Đổi hình ảnh".</span>
+            </div>
+          </div>
+
+          <hr class="settings-divider">
+
+          <div class="settings-group">
+            <h3>Đám Mây Google Drive</h3>
+            <p class="settings-desc">Nhập credentials OAuth2 để kích hoạt đồng bộ hóa dữ liệu từ vựng lên tài khoản Drive của bạn.</p>
+            
+            <div class="input-item">
+              <label for="settings-gdrive-client-id">Google Client ID</label>
+              <input type="text" id="settings-gdrive-client-id" placeholder="Nhập Google Client ID của bạn...">
+            </div>
+            
+            <div class="input-item">
+              <label for="settings-gdrive-client-secret">Google Client Secret</label>
+              <input type="password" id="settings-gdrive-client-secret" placeholder="Nhập Google Client Secret của bạn...">
+            </div>
+
+            <div class="input-item">
+              <label for="settings-gdrive-folder-link">Đường dẫn thư mục Google Drive (Folder Link/ID)</label>
+              <input type="text" id="settings-gdrive-folder-link" placeholder="Mặc định lưu vào link folder của bạn...">
+              <span class="input-help">Ví dụ: https://drive.google.com/drive/folders/1qAiFrO5nDPm3HN-A8qDQkVrFZSUpyCUE</span>
+            </div>
+
+            <div style="margin-top: 15px; display: flex; gap: 12px; align-items: center;">
+              <button id="btn-gdrive-login" class="btn btn-secondary" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                Kết nối Google Drive
+              </button>
+              <span id="gdrive-status-text" class="save-status" style="color: var(--text-secondary);">Chưa kết nối</span>
+            </div>
+          </div>
+
+          <div class="settings-actions">
+            <button id="btn-save-settings" class="btn btn-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Lưu cấu hình
+            </button>
+            <span id="settings-save-success" class="save-status hidden">Đã lưu cấu hình thành công!</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- IMAGE SELECTION MODAL -->
+  <div id="image-modal" class="modal-overlay hidden">
+    <div class="modal-container glass-card">
+      <div class="modal-header">
+        <div>
+          <h3 id="modal-title">Chọn hình ảnh cho từ</h3>
+          <p id="modal-subtitle" class="subtitle">Đang tải danh sách ảnh...</p>
+        </div>
+        <button id="btn-close-modal" class="btn-close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="modal-search-bar">
+        <input type="text" id="modal-search-input" placeholder="Tìm kiếm hình ảnh khác...">
+        <button id="btn-modal-search" class="btn btn-secondary">Tìm</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="image-results-grid" class="image-results-grid">
+          <!-- Dynamically populated search images -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT VOCAB CARD MODAL -->
+  <div id="edit-modal" class="modal-overlay hidden">
+    <div class="modal-container glass-card small-modal">
+      <div class="modal-header">
+        <h3>Chỉnh sửa từ vựng</h3>
+        <button id="btn-close-edit-modal" class="btn-close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="input-item">
+          <label for="edit-word">Từ vựng</label>
+          <input type="text" id="edit-word" readonly class="readonly-input">
+        </div>
+        <div class="input-item">
+          <label for="edit-def">Định nghĩa tiếng Việt</label>
+          <textarea id="edit-def" rows="2" placeholder="Nhập định nghĩa..."></textarea>
+        </div>
+        <div class="input-item">
+          <label for="edit-folder">Thư mục lưu trữ</label>
+          <select id="edit-folder">
+            <option value="uncategorized">Chưa phân loại</option>
+            <!-- Custom folders options populated dynamically -->
+          </select>
+        </div>
+        <div class="input-item">
+          <label for="edit-prompt">AI Image Prompt (Tiếng Anh)</label>
+          <textarea id="edit-prompt" rows="4" placeholder="Nhập prompt mô tả chi tiết hình ảnh..."></textarea>
+          <span class="input-help">Prompt này dùng để gợi ý nội dung hình ảnh khi cần tạo ảnh bằng AI.</span>
+        </div>
+        <div class="modal-actions">
+          <button id="btn-save-edit" class="btn btn-primary">Lưu thay đổi</button>
+          <button id="btn-modal-regenerate" class="btn btn-secondary">
+            Tạo Lại Prompt (Gemini)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLOUD SYNC CHOOSE MODAL -->
+  <div id="sync-modal" class="modal-overlay hidden">
+    <div class="modal-container glass-card small-modal">
+      <div class="modal-header">
+        <h3>Đồng bộ Google Drive</h3>
+        <button id="btn-close-sync-modal" class="btn-close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" style="text-align: center; display: flex; flex-direction: column; gap: 16px; padding: 20px 0 10px;">
+        <p class="subtitle" style="font-size: 14.5px;">Chọn phương thức đồng bộ cho sổ từ vựng của bạn:</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+          <button id="btn-sync-upload" class="btn btn-primary" style="justify-content: center;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+            Tải Lên Drive (Ghi đè bản đám mây)
+          </button>
+          
+          <button id="btn-sync-download" class="btn btn-secondary" style="justify-content: center; border-color: rgba(139, 92, 246, 0.3);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Tải Về Máy (Ghi đè bản cục bộ)
+          </button>
+        </div>
+        
+        <div id="sync-progress-text" class="progress-detail" style="margin-top: 8px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDESHOW POPUP MODAL -->
+  <div id="slideshow-modal" class="modal-overlay hidden">
+    <div class="slideshow-container">
+      <button id="btn-close-slideshow" class="btn-close-slideshow">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+
+      <div class="slide-card-wrapper">
+        <div class="slide-card" id="slide-card-element">
+          <!-- FRONT SIDE -->
+          <div class="slide-card-front">
+            <div class="slide-img-wrapper">
+              <img id="slide-img" src="" alt="">
+            </div>
+            <div class="slide-word-box">
+              <h2 id="slide-word">Word</h2>
+            </div>
+            <p class="slide-hint">Nhấn Space hoặc Click để lật mặt sau</p>
+          </div>
+
+          <!-- BACK SIDE -->
+          <div class="slide-card-back">
+            <div class="slide-back-content">
+              <div class="slide-back-header">
+                <span class="slide-back-title">Định nghĩa & Prompt</span>
+              </div>
+              <div class="slide-back-def" id="slide-definition">
+                Definition goes here
+              </div>
+              <div class="slide-back-prompt-box">
+                <span class="slide-back-prompt-label">AI Image Prompt</span>
+                <p class="slide-back-prompt-text" id="slide-prompt">Prompt text</p>
+              </div>
+            </div>
+            <p class="slide-hint">Nhấn Space hoặc Click để lật mặt trước</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="slideshow-controls">
+        <button id="btn-slide-prev" class="btn btn-secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Trước
+        </button>
+        <div class="slide-progress-text" id="slide-counter">1 / 10</div>
+        <button id="btn-slide-next" class="btn btn-secondary">
+          Sau
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+
+      <div class="slideshow-autoplay-bar">
+        <button id="btn-slide-autoplay" class="btn btn-primary">
+          <svg id="autoplay-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span id="autoplay-text">Tự động chạy</span>
+        </button>
+        <select id="select-autoplay-speed" class="autoplay-speed-select">
+          <option value="3000">3 giây / từ</option>
+          <option value="5000" selected>5 giây / từ</option>
+          <option value="8000">8 giây / từ</option>
+          <option value="12000">12 giây / từ</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- MINI SYNC STATUS TOAST -->
+  <div id="sync-mini-toast" class="sync-mini-toast hidden">
+    <div class="sync-toast-content">
+      <div id="sync-toast-icon" class="sync-toast-spinner"></div>
+      <span id="sync-toast-text">Đang tải lên Drive...</span>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
