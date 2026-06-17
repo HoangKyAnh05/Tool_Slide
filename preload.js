@@ -15,8 +15,10 @@ contextBridge.exposeInMainWorld('api', {
   startGoogleAuth: (clientId, clientSecret) => ipcRenderer.invoke('gdrive:start-auth', { clientId, clientSecret }),
   refreshGoogleToken: (clientId, clientSecret, refreshToken) => ipcRenderer.invoke('gdrive:refresh-token', { clientId, clientSecret, refreshToken }),
   getGoogleUserInfo: (accessToken) => ipcRenderer.invoke('gdrive:get-user-info', accessToken),
-  syncUpload: (accessToken, vocabList, folderId) => ipcRenderer.invoke('gdrive:sync-upload', { accessToken, vocabList, folderId }),
-  syncDownload: (accessToken, folderId) => ipcRenderer.invoke('gdrive:sync-download', { accessToken, folderId }),
+  syncUpload: (accessToken, vocabList, folderId, fileName, syncMode) => 
+    ipcRenderer.invoke('gdrive:sync-upload', { accessToken, vocabList, folderId, fileName, syncMode }),
+  syncDownload: (accessToken, folderId, fileName) => 
+    ipcRenderer.invoke('gdrive:sync-download', { accessToken, folderId, fileName }),
 
   // Google Auth Listener Events
   onGoogleAuthSuccess: (callback) => {

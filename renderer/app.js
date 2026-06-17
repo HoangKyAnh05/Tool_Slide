@@ -100,6 +100,10 @@ const btnCloseSyncModal = document.getElementById('btn-close-sync-modal');
 const btnSyncUpload = document.getElementById('btn-sync-upload');
 const btnSyncDownload = document.getElementById('btn-sync-download');
 const syncProgressText = document.getElementById('sync-progress-text');
+const syncVocabFolderSelect = document.getElementById('sync-vocab-folder');
+const syncGDriveFolderLinkInput = document.getElementById('sync-gdrive-folder-link');
+const syncTargetFileNameInput = document.getElementById('sync-target-file-name');
+const syncTargetModeSelect = document.getElementById('sync-target-mode');
 
 // Google Drive Mini Toast Progress Elements
 const syncMiniToast = document.getElementById('sync-mini-toast');
@@ -757,6 +761,27 @@ function initVocabTabListeners() {
       alert('Vui lòng liên kết tài khoản Google Drive của bạn tại tab Cấu Hình trước khi đồng bộ đám mây!');
       return;
     }
+
+    // Populate the folder select dropdown
+    syncVocabFolderSelect.innerHTML = `
+      <option value="all">Tất cả từ vựng</option>
+      <option value="uncategorized">Chưa phân loại</option>
+    `;
+    foldersList.forEach(folder => {
+      const opt = document.createElement('option');
+      opt.value = folder.id;
+      opt.textContent = folder.name;
+      syncVocabFolderSelect.appendChild(opt);
+    });
+
+    // Prefill Drive folder link
+    const savedLink = localStorage.getItem('gdrive_folder_link') || '';
+    syncGDriveFolderLinkInput.value = savedLink;
+
+    // Default file name and mode
+    syncTargetFileNameInput.value = 'vocab_list';
+    syncTargetModeSelect.value = 'overwrite';
+
     syncProgressText.textContent = '';
     syncModal.classList.remove('hidden');
   });
@@ -911,21 +936,55 @@ function initGoogleDriveListeners() {
     return '';
   }
 
+  // Close Sync Modal
+  btnCloseSyncModal.addEventListener('click', () => {
+    syncModal.classList.add('hidden');
+  });
+
+  // Dynamically update the default file name on folder select change
+  syncVocabFolderSelect.addEventListener('change', () => {
+    const val = syncVocabFolderSelect.value;
+    if (val === 'all') {
+      syncTargetFileNameInput.value = 'vocab_list';
+    } else if (val === 'uncategorized') {
+      syncTargetFileNameInput.value = 'vocab_list_uncategorized';
+    } else {
+      const folder = foldersList.find(f => f.id === val);
+      if (folder) {
+        syncTargetFileNameInput.value = folder.name.replace(/[/\\?%*:|"<>]/g, '-');
+      }
+    }
+  });
+
   // Upload/Download sync button actions
   btnSyncUpload.addEventListener('click', async () => {
     try {
       isSyncing = true;
+
+      // 1. Get user configuration from inputs
+      const folderLink = syncGDriveFolderLinkInput.value.trim() || localStorage.getItem('gdrive_folder_link') || 'https://drive.google.com/drive/folders/1qAiFrO5nDPm3HN-A8qDQkVrFZSUpyCUE';
+      const folderId = getFolderIdFromLink(folderLink);
+
+      const fileName = syncTargetFileNameInput.value.trim() || 'vocab_list';
+      const syncMode = syncTargetModeSelect.value || 'overwrite';
+      const selectedFolderVal = syncVocabFolderSelect.value;
+
+      // 2. Filter vocab list according to selected folder
+      let vocabToSync = vocabList;
+      if (selectedFolderVal === 'uncategorized') {
+        vocabToSync = vocabList.filter(item => !item.folderId || item.folderId === 'uncategorized');
+      } else if (selectedFolderVal !== 'all') {
+        vocabToSync = vocabList.filter(item => item.folderId === selectedFolderVal);
+      }
+
       // Close the modal immediately so user can continue slide study!
       syncModal.classList.add('hidden');
       showSyncMiniToast('Đang làm mới token xác thực...', 'loading');
 
       const accessToken = await getGoogleDriveAccessToken();
-      showSyncMiniToast('Đang đồng bộ từ vựng & ảnh lên Drive...', 'loading');
+      showSyncMiniToast(`Đang đồng bộ (${vocabToSync.length} từ) lên Drive...`, 'loading');
 
-      const folderLink = localStorage.getItem('gdrive_folder_link') || 'https://drive.google.com/drive/folders/1qAiFrO5nDPm3HN-A8qDQkVrFZSUpyCUE';
-      const folderId = getFolderIdFromLink(folderLink);
-
-      const uploadResult = await window.api.syncUpload(accessToken, vocabList, folderId);
+      const uploadResult = await window.api.syncUpload(accessToken, vocabToSync, folderId, fileName, syncMode);
       if (uploadResult.success) {
         showSyncMiniToast('Đồng bộ tải lên Drive thành công!', 'success');
       } else {
@@ -940,8 +999,17 @@ function initGoogleDriveListeners() {
 
   btnSyncDownload.addEventListener('click', async () => {
     try {
+      const selectedFolderVal = syncVocabFolderSelect.value;
+      const fileName = syncTargetFileNameInput.value.trim() || 'vocab_list';
+      const folderLink = syncGDriveFolderLinkInput.value.trim() || localStorage.getItem('gdrive_folder_link') || 'https://drive.google.com/drive/folders/1qAiFrO5nDPm3HN-A8qDQkVrFZSUpyCUE';
+      const folderId = getFolderIdFromLink(folderLink);
+
       if (vocabList.length > 0) {
-        const confirmDownload = confirm('CẢNH BÁO: Tải dữ liệu về sẽ GHI ĐÈ và XÓA toàn bộ từ vựng hiện có trên máy này. Bạn có chắc chắn muốn tải về?');
+        let msg = 'CẢNH BÁO: Tải dữ liệu về sẽ GHI ĐÈ và XÓA toàn bộ từ vựng hiện có trên máy này. Bạn có chắc chắn muốn tải về?';
+        if (selectedFolderVal !== 'all') {
+          msg = `CẢNH BÁO: Tải dữ liệu về sẽ GHI ĐÈ các từ vựng thuộc danh mục đã chọn. Bạn có chắc chắn muốn tải về?`;
+        }
+        const confirmDownload = confirm(msg);
         if (!confirmDownload) return;
       }
 
@@ -953,12 +1021,24 @@ function initGoogleDriveListeners() {
       const accessToken = await getGoogleDriveAccessToken();
       showSyncMiniToast('Đang tải dữ liệu từ Google Drive...', 'loading');
 
-      const folderLink = localStorage.getItem('gdrive_folder_link') || 'https://drive.google.com/drive/folders/1qAiFrO5nDPm3HN-A8qDQkVrFZSUpyCUE';
-      const folderId = getFolderIdFromLink(folderLink);
-
-      const downloadResult = await window.api.syncDownload(accessToken, folderId);
+      const downloadResult = await window.api.syncDownload(accessToken, folderId, fileName);
       if (downloadResult.success) {
-        vocabList = downloadResult.vocabList;
+        const downloadedList = downloadResult.vocabList;
+
+        // Merge downloaded list based on the chosen folder mode
+        if (selectedFolderVal === 'all') {
+          vocabList = downloadedList;
+        } else {
+          if (selectedFolderVal === 'uncategorized') {
+            vocabList = vocabList.filter(item => item.folderId && item.folderId !== 'uncategorized');
+            downloadedList.forEach(item => item.folderId = 'uncategorized');
+          } else {
+            vocabList = vocabList.filter(item => item.folderId !== selectedFolderVal);
+            downloadedList.forEach(item => item.folderId = selectedFolderVal);
+          }
+          vocabList = [...vocabList, ...downloadedList];
+        }
+
         saveState(); // Save locally, update badges/grid
         renderVocabGrid();
         updateVocabCount();

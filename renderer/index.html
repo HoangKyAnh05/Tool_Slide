@@ -368,29 +368,56 @@ Ví dụ:
 
   <!-- CLOUD SYNC CHOOSE MODAL -->
   <div id="sync-modal" class="modal-overlay hidden">
-    <div class="modal-container glass-card small-modal">
+    <div class="modal-container glass-card" style="width: 480px; max-width: 90%;">
       <div class="modal-header">
         <h3>Đồng bộ Google Drive</h3>
         <button id="btn-close-sync-modal" class="btn-close">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
-      <div class="modal-body" style="text-align: center; display: flex; flex-direction: column; gap: 16px; padding: 20px 0 10px;">
-        <p class="subtitle" style="font-size: 14.5px;">Chọn phương thức đồng bộ cho sổ từ vựng của bạn:</p>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px; padding: 16px 0 10px;">
+        <p class="subtitle" style="font-size: 14px; margin-bottom: 4px;">Thiết lập cấu hình đồng bộ dữ liệu:</p>
         
-        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
-          <button id="btn-sync-upload" class="btn btn-primary" style="justify-content: center;">
+        <div class="input-item">
+          <label for="sync-vocab-folder">1. Thư mục từ vựng đồng bộ</label>
+          <select id="sync-vocab-folder">
+            <option value="all">Tất cả từ vựng</option>
+            <option value="uncategorized">Chưa phân loại</option>
+            <!-- Custom folders options populated dynamically -->
+          </select>
+        </div>
+
+        <div class="input-item">
+          <label for="sync-gdrive-folder-link">2. Thư mục Google Drive (Link hoặc ID)</label>
+          <input type="text" id="sync-gdrive-folder-link" placeholder="Mặc định lấy từ cấu hình...">
+        </div>
+
+        <div class="input-item">
+          <label for="sync-target-file-name">3. Tên tệp lưu trữ trên Drive</label>
+          <input type="text" id="sync-target-file-name" placeholder="Ví dụ: vocab_list" value="vocab_list">
+        </div>
+
+        <div class="input-item">
+          <label for="sync-target-mode">4. Chế độ lưu tệp</label>
+          <select id="sync-target-mode">
+            <option value="overwrite">Tìm và ghi đè tệp cũ có cùng tên (Lưu vào cũ)</option>
+            <option value="create_new">Tạo tệp mới hoàn toàn (Tạo cái mới)</option>
+          </select>
+        </div>
+        
+        <div style="display: flex; gap: 12px; margin-top: 8px;">
+          <button id="btn-sync-upload" class="btn btn-primary" style="flex: 1; justify-content: center;">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-            Tải Lên Drive (Ghi đè bản đám mây)
+            Tải Lên Drive
           </button>
           
-          <button id="btn-sync-download" class="btn btn-secondary" style="justify-content: center; border-color: rgba(139, 92, 246, 0.3);">
+          <button id="btn-sync-download" class="btn btn-secondary" style="flex: 1; justify-content: center; border-color: rgba(139, 92, 246, 0.3);">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-            Tải Về Máy (Ghi đè bản cục bộ)
+            Tải Về Máy
           </button>
         </div>
         
-        <div id="sync-progress-text" class="progress-detail" style="margin-top: 8px;"></div>
+        <div id="sync-progress-text" class="progress-detail" style="margin-top: 4px; text-align: center;"></div>
       </div>
     </div>
   </div>

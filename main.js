@@ -208,10 +208,10 @@ ipcMain.handle('gdrive:get-user-info', async (event, accessToken) => {
 });
 
 // IPC Handler: Sync Upload to Google Drive
-ipcMain.handle('gdrive:sync-upload', async (event, { accessToken, vocabList, folderId }) => {
+ipcMain.handle('gdrive:sync-upload', async (event, { accessToken, vocabList, folderId, fileName, syncMode }) => {
   try {
     const vocabData = JSON.stringify(vocabList, null, 2);
-    await uploadVocabList(accessToken, vocabData, folderId);
+    await uploadVocabList(accessToken, vocabData, folderId, fileName, syncMode);
     return { success: true };
   } catch (error) {
     console.error('Sync Upload Error:', error);
@@ -220,9 +220,9 @@ ipcMain.handle('gdrive:sync-upload', async (event, { accessToken, vocabList, fol
 });
 
 // IPC Handler: Sync Download from Google Drive
-ipcMain.handle('gdrive:sync-download', async (event, { accessToken, folderId }) => {
+ipcMain.handle('gdrive:sync-download', async (event, { accessToken, folderId, fileName }) => {
   try {
-    const vocabList = await downloadVocabList(accessToken, folderId);
+    const vocabList = await downloadVocabList(accessToken, folderId, fileName);
     if (!Array.isArray(vocabList)) {
       throw new Error('Định dạng tệp dữ liệu trên Google Drive không đúng chuẩn (phải là danh sách từ vựng).');
     }

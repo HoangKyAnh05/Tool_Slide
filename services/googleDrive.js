@@ -81,12 +81,13 @@ async function getOrCreateFolder(accessToken) {
   return createResponse.data.id;
 }
 
-// Search for vocab_list.json on Google Drive
-async function findVocabFile(accessToken, folderId) {
+
+// Search for vocab_list (Google Doc) on Google Drive
+async function findDocFile(accessToken, folderId, fileName = 'vocab_list') {
   const response = await axios.get('https://www.googleapis.com/drive/v3/files', {
     headers: { Authorization: `Bearer ${accessToken}` },
     params: {
-      q: `name = 'vocab_list.json' and '${folderId}' in parents and trashed = false`,
+      q: `name = '${fileName}' and '${folderId}' in parents and mimeType = 'application/vnd.google-apps.document' and trashed = false`,
       fields: 'files(id, name)'
     }
   });
@@ -97,52 +98,86 @@ async function findVocabFile(accessToken, folderId) {
   return null;
 }
 
-// Search for vocab_list (Google Doc) on Google Drive
-async function findDocFile(accessToken, folderId) {
-  const response = await axios.get('https://www.googleapis.com/drive/v3/files', {
-    headers: { Authorization: `Bearer ${accessToken}` },
-    params: {
-      q: `name = 'vocab_list' and '${folderId}' in parents and mimeType = 'application/vnd.google-apps.document' and trashed = false`,
-      fields: 'files(id, name)'
+// Helper to parse vocabulary list back from Google Doc HTML export
+function parseGoogleDocHtml(html) {
+  const list = [];
+  const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+  let rowMatch;
+  let isHeader = true;
+  
+  while ((rowMatch = rowRegex.exec(html)) !== null) {
+    const rowContent = rowMatch[1];
+    const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+    const cells = [];
+    let cellMatch;
+    while ((cellMatch = cellRegex.exec(rowContent)) !== null) {
+      cells.push(cellMatch[1]);
     }
-  });
-
-  if (response.data.files && response.data.files.length > 0) {
-    return response.data.files[0].id;
+    
+    if (cells.length >= 2) {
+      if (isHeader) {
+        if (cells[0].includes('Từ vựng') || cells[0].includes('Định nghĩa')) {
+          isHeader = false;
+          continue;
+        }
+      }
+      
+      const firstCell = cells[0];
+      const secondCell = cells[1];
+      
+      const lines = firstCell
+        .replace(/<br[^>]*>/gi, '\n')
+        .replace(/<\/p>/gi, '\n')
+        .replace(/<\/div>/gi, '\n')
+        .replace(/<[^>]+>/g, '')
+        .split('\n')
+        .map(l => l.trim())
+        .filter(l => l.length > 0);
+        
+      if (lines.length >= 1) {
+        const word = lines[0];
+        let definitionLines = [];
+        let topic = 'Nhập hàng loạt';
+        
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i];
+          if (line.startsWith('Chủ đề:') || line.startsWith('Folder:')) {
+            topic = line.replace(/^(Chủ đề:|Folder:)/, '').trim();
+          } else if (line.startsWith('Thư mục:')) {
+            topic = line.replace(/^Thư mục:/, '').trim();
+          } else {
+            definitionLines.push(line);
+          }
+        }
+        
+        const definition = definitionLines.join('\n') || 'Chưa có định nghĩa';
+        
+        // Extract image url
+        let image = '';
+        const imgMatch = secondCell.match(/<img[^>]+src=["']([^"']+)["']/i);
+        if (imgMatch) {
+          image = imgMatch[1];
+        }
+        
+        list.push({
+          id: `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          word,
+          definition,
+          image,
+          localImagePath: '',
+          image_prompt: `A simple high-quality image of "${word}"`,
+          topic
+        });
+      }
+    }
   }
-  return null;
+  return list;
 }
 
 // Upload/Sync vocab list data to Google Drive
-async function uploadVocabList(accessToken, vocabData, folderId) {
+async function uploadVocabList(accessToken, vocabData, folderId, fileName = 'vocab_list', syncMode = 'overwrite') {
   // 1. Get or create VocabAI folder if none provided
   const targetFolderId = folderId || await getOrCreateFolder(accessToken);
-
-  // 2. Find if vocab_list.json already exists in that folder
-  let fileId = await findVocabFile(accessToken, targetFolderId);
-
-  if (!fileId) {
-    // Create new empty file metadata first
-    const createMetaResponse = await axios.post('https://www.googleapis.com/drive/v3/files', {
-      name: 'vocab_list.json',
-      parents: [targetFolderId],
-      mimeType: 'application/json'
-    }, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    fileId = createMetaResponse.data.id;
-  }
-
-  // 3. Upload content to the file
-  await axios.patch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, vocabData, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json'
-    }
-  });
 
   // 4. Clean up any loose image files in targetFolderId (parent folder) from previous syncs
   try {
@@ -159,8 +194,9 @@ async function uploadVocabList(accessToken, vocabData, folderId) {
         file.mimeType.startsWith('image/') || 
         file.name.endsWith('.jpg') || 
         file.name.endsWith('.png') || 
-        file.name === 'vocab_list.doc' || 
-        file.name === 'vocab_list.html'
+        file.name === `${fileName}.doc` || 
+        file.name === `${fileName}.html` ||
+        file.name === `${fileName}.json`
       ) {
         try {
           await axios.delete(`https://www.googleapis.com/drive/v3/files/${file.id}`, {
@@ -280,11 +316,15 @@ async function uploadVocabList(accessToken, vocabData, folderId) {
 </body>
 </html>`;
 
-  // 6. Find or create vocab_list (Google Doc)
-  let docFileId = await findDocFile(accessToken, targetFolderId);
+  // 6. Find or create the Google Doc (if in overwrite mode)
+  let docFileId = null;
+  if (syncMode === 'overwrite') {
+    docFileId = await findDocFile(accessToken, targetFolderId, fileName);
+  }
+
   if (!docFileId) {
     const createDocMetaResponse = await axios.post('https://www.googleapis.com/drive/v3/files', {
-      name: 'vocab_list',
+      name: fileName,
       parents: [targetFolderId],
       mimeType: 'application/vnd.google-apps.document' // target type is Google Doc
     }, {
@@ -315,27 +355,29 @@ async function uploadVocabList(accessToken, vocabData, folderId) {
     }
   }
 
-  return fileId;
+  return docFileId;
 }
 
 // Download vocab list data from Google Drive
-async function downloadVocabList(accessToken, folderId) {
+async function downloadVocabList(accessToken, folderId, fileName = 'vocab_list') {
   // 1. Find the target folder
   const targetFolderId = folderId || await getOrCreateFolder(accessToken);
 
-  // 2. Find vocab_list.json
-  const fileId = await findVocabFile(accessToken, targetFolderId);
-  if (!fileId) {
-    throw new Error('Không tìm thấy tệp dữ liệu vocab_list.json trên Drive. Vui lòng Tải Lên trước.');
+  // 2. Find the Google Doc by custom name
+  const docFileId = await findDocFile(accessToken, targetFolderId, fileName);
+  if (!docFileId) {
+    throw new Error(`Không tìm thấy tài liệu Google Doc "${fileName}" trên Drive.`);
   }
 
-  // 3. Download the file content
-  const response = await axios.get(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+  // 3. Export the Google Doc content as HTML
+  const response = await axios.get(`https://www.googleapis.com/drive/v3/files/${docFileId}/export?mimeType=text/html`, {
     headers: { Authorization: `Bearer ${accessToken}` },
-    responseType: 'json'
+    responseType: 'text'
   });
 
-  return response.data;
+  // 4. Parse the exported HTML back to the vocabList structure
+  const vocabList = parseGoogleDocHtml(response.data);
+  return vocabList;
 }
 
 module.exports = {
